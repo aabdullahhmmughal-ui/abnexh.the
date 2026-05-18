@@ -1,177 +1,195 @@
-import gradio as gr
+import streamlit as st
 from datetime import datetime
 
-# =========================
-# Data Storage
-# =========================
-tasks = []
-messages = []
+# ======================================
+# PAGE CONFIG
+# ======================================
+st.set_page_config(
+    page_title="Smart AI Workspace",
+    page_icon="🚀",
+    layout="wide"
+)
 
-# =========================
-# TO-DO FUNCTIONS
-# =========================
-def add_task(task):
-    if task.strip() == "":
-        return "\n".join(tasks)
+# ======================================
+# SESSION STATE
+# ======================================
+if "tasks" not in st.session_state:
+    st.session_state.tasks = []
 
-    current_time = datetime.now().strftime("%H:%M")
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-    tasks.append(f"✅ {task}  |  Added at {current_time}")
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
 
-    return "\n".join(tasks)
+# ======================================
+# CUSTOM CSS
+# ======================================
+st.markdown("""
+<style>
+.main {
+    background-color: #0f172a;
+    color: white;
+}
 
+.stTextInput > div > div > input {
+    background-color: #1e293b;
+    color: white;
+}
 
-def clear_tasks():
-    tasks.clear()
-    return ""
+.stTextArea textarea {
+    background-color: #1e293b;
+    color: white;
+}
 
+div.stButton > button {
+    background-color: #2563eb;
+    color: white;
+    border-radius: 10px;
+    height: 45px;
+    font-size: 16px;
+    font-weight: bold;
+}
 
-# =========================
-# TEAM CHAT FUNCTIONS
-# =========================
-def send_message(name, message):
-    if name.strip() == "" or message.strip() == "":
-        return "\n".join(messages)
+.chat-box {
+    background-color: #1e293b;
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+</style>
+""", unsafe_allow_html=True)
 
-    current_time = datetime.now().strftime("%H:%M")
+# ======================================
+# HEADER
+# ======================================
+st.title("🚀 Smart AI Workspace")
+st.subheader("MS Teams + Slack + To-Do + AI Assistant")
 
-    messages.append(f"[{current_time}] {name}: {message}")
+# ======================================
+# TABS
+# ======================================
+tab1, tab2, tab3 = st.tabs([
+    "💬 Team Chat",
+    "✅ To-Do List",
+    "🤖 AI Assistant"
+])
 
-    return "\n".join(messages)
+# ======================================
+# TEAM CHAT TAB
+# ======================================
+with tab1:
 
+    st.header("💬 Team Communication")
 
-# =========================
-# AI ASSISTANT
-# =========================
-def ai_assistant(user_message, history):
+    username = st.text_input("Your Name")
+    message = st.text_input("Enter Message")
 
-    text = user_message.lower()
+    if st.button("Send Message"):
 
-    # Simple AI Logic
-    if "hello" in text:
-        reply = "Hello 👋 Welcome to your AI Workspace!"
-    elif "task" in text:
-        reply = "You can manage tasks in the To-Do section ✅"
-    elif "meeting" in text:
-        reply = "Virtual meetings feature can be added later 🎥"
-    elif "mechanical" in text:
-        reply = "Mechanical engineering involves machines, thermodynamics, and design ⚙️"
-    elif "stress" in text:
-        reply = "Stress = Force / Area"
-    elif "thermodynamics" in text:
-        reply = "Thermodynamics is the study of heat and energy 🔥"
-    else:
-        reply = f"AI Assistant: I understand your message -> {user_message}"
+        if username and message:
+            current_time = datetime.now().strftime("%H:%M")
 
-    history.append((user_message, reply))
-
-    return history
-
-
-# =========================
-# UI DESIGN
-# =========================
-with gr.Blocks(theme=gr.themes.Soft()) as app:
-
-    gr.Markdown("""
-    # 🚀 Smart AI Workspace
-    ### MS Teams + Slack + To-Do + AI Assistant
-    """)
-
-    with gr.Tabs():
-
-        # =========================
-        # TEAM CHAT TAB
-        # =========================
-        with gr.Tab("💬 Team Chat"):
-
-            gr.Markdown("## Team Communication Channel")
-
-            username = gr.Textbox(
-                label="Your Name",
-                placeholder="Enter your name"
+            st.session_state.messages.append(
+                f"[{current_time}] {username}: {message}"
             )
 
-            message_input = gr.Textbox(
-                label="Message",
-                placeholder="Type your message..."
+    st.subheader("📨 Messages")
+
+    for msg in st.session_state.messages[::-1]:
+        st.markdown(
+            f"<div class='chat-box'>{msg}</div>",
+            unsafe_allow_html=True
+        )
+
+# ======================================
+# TODO TAB
+# ======================================
+with tab2:
+
+    st.header("✅ Task Manager")
+
+    new_task = st.text_input("Add New Task")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        if st.button("Add Task"):
+            if new_task:
+                current_time = datetime.now().strftime("%H:%M")
+
+                st.session_state.tasks.append(
+                    f"✅ {new_task} | Added at {current_time}"
+                )
+
+    with col2:
+        if st.button("Clear Tasks"):
+            st.session_state.tasks = []
+
+    st.subheader("📋 Task List")
+
+    for task in st.session_state.tasks[::-1]:
+        st.markdown(
+            f"<div class='chat-box'>{task}</div>",
+            unsafe_allow_html=True
+        )
+
+# ======================================
+# AI ASSISTANT TAB
+# ======================================
+with tab3:
+
+    st.header("🤖 AI Assistant")
+
+    user_question = st.text_input(
+        "Ask your AI Assistant"
+    )
+
+    if st.button("Ask AI"):
+
+        text = user_question.lower()
+
+        # Simple AI Logic
+        if "hello" in text:
+            response = "Hello 👋 Welcome to Smart AI Workspace!"
+        elif "mechanical" in text:
+            response = "Mechanical engineering involves machines, design, and thermodynamics ⚙️"
+        elif "stress" in text:
+            response = "Stress = Force / Area"
+        elif "thermodynamics" in text:
+            response = "Thermodynamics studies heat and energy 🔥"
+        elif "productivity" in text:
+            response = "Use the To-Do tab to stay productive ✅"
+        else:
+            response = f"AI Assistant Response: {user_question}"
+
+        st.session_state.chat_history.append(
+            ("You", user_question)
+        )
+
+        st.session_state.chat_history.append(
+            ("AI", response)
+        )
+
+    st.subheader("💡 Conversation")
+
+    for sender, msg in st.session_state.chat_history[::-1]:
+
+        if sender == "You":
+            st.markdown(
+                f"<div class='chat-box'><b>🧑 You:</b> {msg}</div>",
+                unsafe_allow_html=True
+            )
+        else:
+            st.markdown(
+                f"<div class='chat-box'><b>🤖 AI:</b> {msg}</div>",
+                unsafe_allow_html=True
             )
 
-            send_btn = gr.Button("Send Message")
-
-            chat_output = gr.Textbox(
-                label="Team Messages",
-                lines=15
-            )
-
-            send_btn.click(
-                fn=send_message,
-                inputs=[username, message_input],
-                outputs=chat_output
-            )
-
-        # =========================
-        # TO-DO TAB
-        # =========================
-        with gr.Tab("✅ To-Do List"):
-
-            gr.Markdown("## Manage Your Tasks")
-
-            task_input = gr.Textbox(
-                label="New Task",
-                placeholder="Enter a task..."
-            )
-
-            add_btn = gr.Button("Add Task")
-
-            task_output = gr.Textbox(
-                label="Task List",
-                lines=12
-            )
-
-            clear_btn = gr.Button("Clear Tasks")
-
-            add_btn.click(
-                fn=add_task,
-                inputs=task_input,
-                outputs=task_output
-            )
-
-            clear_btn.click(
-                fn=clear_tasks,
-                outputs=task_output
-            )
-
-        # =========================
-        # AI ASSISTANT TAB
-        # =========================
-        with gr.Tab("🤖 AI Assistant"):
-
-            gr.Markdown("## Ask Your AI Assistant")
-
-            chatbot = gr.Chatbot(height=400)
-
-            ai_input = gr.Textbox(
-                label="Ask Anything",
-                placeholder="Ask engineering or productivity questions..."
-            )
-
-            ask_btn = gr.Button("Ask AI")
-
-            ask_btn.click(
-                fn=ai_assistant,
-                inputs=[ai_input, chatbot],
-                outputs=chatbot
-            )
-
-    gr.Markdown("""
-    ---
-    ### 🌟 Features
-    - Team Communication
-    - Smart To-Do Manager
-    - AI Assistant
-    - Modern Workspace UI
-    """)
-
-# Launch App
-app.launch()
+# ======================================
+# FOOTER
+# ======================================
+st.markdown("---")
+st.markdown(
+    "### 🌟 Built by Muhammad Abdullah | Mechanical Engineering Student"
+)
